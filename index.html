@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Nghe Nhạc</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Music Player</p>
+          <h1>Nghe nhạc đã tải về</h1>
+          <p class="subtext">Danh sách bài hát sẽ tự hiện từ thư mục <code>songs/</code>, bấm vào bài hát bạn muốn nghe.</p>
+        </div>
+      </section>
+
+      <section class="player-card">
+        <div class="now-playing">
+          <p class="label">Đang phát</p>
+          <h2 id="currentTitle">Chưa có bài nào</h2>
+          <p id="currentMeta">Hãy chọn file nhạc để bắt đầu</p>
+        </div>
+
+        <audio id="audioPlayer" controls></audio>
+
+        <div class="controls">
+          <button id="prevBtn" type="button">Bài trước</button>
+          <button id="playBtn" type="button">Phát / Tạm dừng</button>
+          <button id="randomBtn" type="button">Phát ngẫu nhiên</button>
+          <button id="nextBtn" type="button">Bài tiếp</button>
+        </div>
+      </section>
+
+      <section class="playlist-card">
+        <div class="playlist-header">
+          <h3>Danh sách nhạc</h3>
+          <p id="countText">0 bài</p>
+        </div>
+        <ul id="playlist" class="playlist"></ul>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
