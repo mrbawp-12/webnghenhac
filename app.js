@@ -11,6 +11,7 @@ const nextBtn = document.getElementById("nextBtn");
 let tracks = [];
 let currentIndex = -1;
 
+const TRACKS_MANIFEST = "songs.json";
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".webm"];
 
 function formatName(fileName) {
@@ -22,29 +23,64 @@ function isAudioFile(fileName) {
   return AUDIO_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
 
-async function loadTracks() {
-  const response = await fetch("songs/");
-  if (!response.ok) throw new Error("Không đọc được thư mục songs/");
+function normalizeTracks(data) {
+  if (!Array.isArray(data)) return [];
 
-  const html = await response.text();
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  const links = Array.from(doc.querySelectorAll("a[href]"));
+  return data
+    .map((item) => {
+      if (typeof item === "string") {
+        return {
+          name: formatName(item),
+          url: new URL(`songs/${encodeURI(item)}`, window.location.href).href,
+        };
+      }
 
-  tracks = links
-    .map((link) => {
-      const href = link.getAttribute("href") || "";
-      if (!href || href === "../" || href.startsWith("?")) return null;
+      if (!item || typeof item !== "object") return null;
 
-      const fileUrl = new URL(href, new URL("songs/", window.location.href));
-      const fileName = decodeURIComponent(fileUrl.pathname.split("/").pop() || "");
-      if (!isAudioFile(fileName)) return null;
+      const fileName = typeof item.fileName === "string" ? item.fileName : "";
+      const url = typeof item.url === "string" && item.url ? new URL(item.url, window.location.href).href : "";
+      const name = typeof item.name === "string" && item.name ? item.name : formatName(fileName || url.split("/").pop() || "");
 
-      return {
-        name: formatName(fileName),
-        url: fileUrl.href,
-      };
+      if (!url) return null;
+      return { name, url };
     })
-    .filter(Boolean);
+    .filter((track) => track && isAudioFile(track.url.split("?")[0]));
+}
+
+async function loadTracks() {
+  try {
+    const manifestResponse = await fetch(TRACKS_MANIFEST, { cache: "no-store" });
+    if (manifestResponse.ok) {
+      tracks = normalizeTracks(await manifestResponse.json());
+    }
+  } catch (_) {
+    tracks = [];
+  }
+
+  if (!tracks.length) {
+    const response = await fetch("songs/");
+    if (!response.ok) throw new Error("Không đọc được danh sách bài hát");
+
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const links = Array.from(doc.querySelectorAll("a[href]"));
+
+    tracks = links
+      .map((link) => {
+        const href = link.getAttribute("href") || "";
+        if (!href || href === "../" || href.startsWith("?")) return null;
+
+        const fileUrl = new URL(href, new URL("songs/", window.location.href));
+        const fileName = decodeURIComponent(fileUrl.pathname.split("/").pop() || "");
+        if (!isAudioFile(fileName)) return null;
+
+        return {
+          name: formatName(fileName),
+          url: fileUrl.href,
+        };
+      })
+      .filter(Boolean);
+  }
 
   currentIndex = -1;
   updateNowPlaying();
