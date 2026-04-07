@@ -7,11 +7,15 @@ const prevBtn = document.getElementById("prevBtn");
 const playBtn = document.getElementById("playBtn");
 const randomBtn = document.getElementById("randomBtn");
 const nextBtn = document.getElementById("nextBtn");
+const addForm = document.getElementById("addForm");
+const songUrlInput = document.getElementById("songUrlInput");
+const addStatus = document.getElementById("addStatus");
 
 let tracks = [];
 let currentIndex = -1;
 
 const TRACKS_MANIFEST = "songs.json";
+const TRACKS_API = "/api/tracks";
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".webm"];
 
 function formatName(fileName) {
@@ -23,6 +27,15 @@ function isAudioFile(fileName) {
   return AUDIO_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
 
+function guessNameFromUrl(url) {
+  try {
+    const fileName = decodeURIComponent(new URL(url, window.location.href).pathname.split("/").pop() || "");
+    return formatName(fileName || url);
+  } catch (_) {
+    return formatName(url);
+  }
+}
+
 function normalizeTracks(data) {
   if (!Array.isArray(data)) return [];
 
@@ -31,7 +44,7 @@ function normalizeTracks(data) {
       if (typeof item === "string") {
         return {
           name: formatName(item),
-          url: new URL(`songs/${encodeURI(item)}`, window.location.href).href,
+          url: new URL(`songs/${encodeURIComponent(item)}`, window.location.href).href,
         };
       }
 
@@ -47,15 +60,40 @@ function normalizeTracks(data) {
     .filter((track) => track && isAudioFile(track.url.split("?")[0]));
 }
 
+function dedupeTracks(items) {
+  const seen = new Set();
+  return items.filter((track) => {
+    if (!track?.url || seen.has(track.url)) return false;
+    seen.add(track.url);
+    return true;
+  });
+}
+
+async function loadApiTracks() {
+  try {
+    const response = await fetch(TRACKS_API, { cache: "no-store" });
+    if (!response.ok) return [];
+    return normalizeTracks(await response.json());
+  } catch (_) {
+    return [];
+  }
+}
+
 async function loadTracks() {
+  let manifestTracks = [];
+  let apiTracks = [];
+
   try {
     const manifestResponse = await fetch(TRACKS_MANIFEST, { cache: "no-store" });
     if (manifestResponse.ok) {
-      tracks = normalizeTracks(await manifestResponse.json());
+      manifestTracks = normalizeTracks(await manifestResponse.json());
     }
   } catch (_) {
-    tracks = [];
+    manifestTracks = [];
   }
+
+  apiTracks = await loadApiTracks();
+  tracks = dedupeTracks([...manifestTracks, ...apiTracks]);
 
   if (!tracks.length) {
     const response = await fetch("songs/");
@@ -85,6 +123,21 @@ async function loadTracks() {
   currentIndex = -1;
   updateNowPlaying();
   renderPlaylist();
+}
+
+async function addTrack(url) {
+  const response = await fetch(TRACKS_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || "Không lưu được link nhạc");
+  }
+
+  return normalizeTracks([await response.json()])[0];
 }
 
 function renderPlaylist() {
@@ -181,8 +234,30 @@ nextBtn.addEventListener("click", nextTrack);
 playBtn.addEventListener("click", togglePlay);
 randomBtn.addEventListener("click", randomTrack);
 
+addForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const url = songUrlInput.value.trim();
+
+  if (!url) return;
+
+  addStatus.textContent = "Đang lưu link...";
+  addForm.querySelector("button").disabled = true;
+
+  try {
+    const track = await addTrack(url);
+    tracks = dedupeTracks([...tracks, track]);
+    renderPlaylist();
+    addForm.reset();
+    addStatus.textContent = "Đã thêm bài hát vào danh sách.";
+  } catch (error) {
+    addStatus.textContent = error.message;
+  } finally {
+    addForm.querySelector("button").disabled = false;
+  }
+});
+
 loadTracks().catch(() => {
-  tracks = [];
+  tracks = []; 
   updateNowPlaying();
   renderPlaylist();
 });

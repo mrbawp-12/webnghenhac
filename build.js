@@ -21,7 +21,7 @@ const tracks = fs
   .map((entry) => ({
     name: formatName(entry.name),
     fileName: entry.name,
-    url: `songs/${encodeURI(entry.name)}`,
+    url: `songs/${encodeURIComponent(entry.name)}`,
   }))
   .sort((a, b) => a.name.localeCompare(b.name, "vi"));
 

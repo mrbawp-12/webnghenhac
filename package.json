@@ -1,0 +1,11 @@
+{
+  "name": "web-nghe-nhac",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.0.0"
+  }
+}

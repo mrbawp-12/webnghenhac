@@ -99,6 +99,40 @@ h1 {
   padding: 24px;
 }
 
+.add-card {
+  display: grid;
+  gap: 16px;
+}
+
+.add-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+}
+
+.add-form input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text);
+  font: inherit;
+}
+
+.add-form input::placeholder {
+  color: var(--muted);
+}
+
+.add-form input:focus {
+  outline: 2px solid rgba(124, 58, 237, 0.5);
+  outline-offset: 2px;
+}
+
+#addStatus {
+  color: var(--muted);
+}
+
 .now-playing {
   display: grid;
   gap: 6px;
@@ -175,6 +209,10 @@ button:hover {
   .hero {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .add-form {
+    grid-template-columns: 1fr;
   }
 
   .controls {

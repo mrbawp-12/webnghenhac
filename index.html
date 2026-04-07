@@ -12,8 +12,21 @@
         <div>
           <p class="eyebrow">Music Player</p>
           <h1>Nghe nhạc đã tải về</h1>
-          <p class="subtext">Danh sách bài hát sẽ tự hiện từ thư mục <code>songs/</code>, bấm vào bài hát bạn muốn nghe.</p>
+          <p class="subtext">Danh sách bài hát sẽ tự hiện từ thư mục <code>songs/</code> và các link URL bạn thêm vào.</p>
         </div>
+      </section>
+
+      <section class="player-card add-card">
+        <div class="now-playing">
+          <p class="label">Thêm bài hát</p>
+          <h2>Nhập link URL</h2>
+          <p id="addStatus">Dán link file nhạc trực tiếp để lưu vào danh sách chung.</p>
+        </div>
+
+        <form id="addForm" class="add-form">
+          <input id="songUrlInput" type="url" placeholder="https://example.com/song.mp3" autocomplete="off" required />
+          <button type="submit">Thêm vào danh sách</button>
+        </form>
       </section>
 
       <section class="player-card">
