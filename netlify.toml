@@ -7,3 +7,8 @@ functions = "netlify/functions"
 from = "/api/tracks"
 to = "/.netlify/functions/tracks"
 status = 200
+
+[[redirects]]
+from = "/api/media"
+to = "/.netlify/functions/media"
+status = 200

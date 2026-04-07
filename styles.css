@@ -133,6 +133,46 @@ h1 {
   color: var(--muted);
 }
 
+.drop-zone {
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  border-radius: 18px;
+  padding: 18px;
+  display: grid;
+  gap: 6px;
+  place-items: center;
+  text-align: center;
+  background: rgba(15, 23, 42, 0.45);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+  border-color: rgba(34, 197, 94, 0.7);
+  background: rgba(34, 197, 94, 0.08);
+  transform: translateY(-1px);
+}
+
+.drop-zone strong {
+  font-size: 1rem;
+}
+
+.drop-zone small {
+  color: var(--muted);
+}
+
+.soundcloud-shell {
+  width: 100%;
+}
+
+#soundcloudPlayer {
+  width: 100%;
+  height: 166px;
+  border: 0;
+  border-radius: 16px;
+  background: #111827;
+}
+
 .now-playing {
   display: grid;
   gap: 6px;

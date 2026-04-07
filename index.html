@@ -19,14 +19,20 @@
       <section class="player-card add-card">
         <div class="now-playing">
           <p class="label">Thêm bài hát</p>
-          <h2>Nhập link URL</h2>
-          <p id="addStatus">Dán link file nhạc trực tiếp để lưu vào danh sách chung.</p>
+          <h2>Thêm từ link hoặc file</h2>
+          <p id="addStatus">Dán link SoundCloud hoặc kéo file nhạc vào khung bên dưới.</p>
         </div>
 
         <form id="addForm" class="add-form">
-          <input id="songUrlInput" type="url" placeholder="https://example.com/song.mp3" autocomplete="off" required />
-          <button type="submit">Thêm vào danh sách</button>
+          <input id="songUrlInput" type="url" placeholder="https://soundcloud.com/..." autocomplete="off" />
+          <button type="submit">Thêm link</button>
         </form>
+
+        <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="Kéo thả file nhạc để tải lên">
+          <strong>Kéo file nhạc vào đây</strong>
+          <small>Hoặc bấm để chọn file từ máy</small>
+          <input id="fileInput" type="file" accept="audio/*" hidden />
+        </div>
       </section>
 
       <section class="player-card">
@@ -37,6 +43,9 @@
         </div>
 
         <audio id="audioPlayer" controls></audio>
+        <div id="soundcloudShell" class="soundcloud-shell" hidden>
+          <iframe id="soundcloudPlayer" title="SoundCloud player" allow="autoplay"></iframe>
+        </div>
 
         <div class="controls">
           <button id="prevBtn" type="button">Bài trước</button>
