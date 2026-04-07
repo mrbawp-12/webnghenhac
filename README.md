@@ -25,3 +25,5 @@ python -m http.server 8000
 ## Deploy Netlify
 
 Netlify sẽ tự chạy `node build.js` trước khi deploy để tạo danh sách bài hát từ thư mục `songs/`.
+
+Link đăng nhập:https://sunnghenhac.netlify.app/ 
