@@ -10,3 +10,8 @@ Trang web nghe nhạc đơn giản chạy trực tiếp trong trình duyệt.
 4. Danh sách sẽ tự hiện, bấm vào bài nào để phát bài đó.
 5. Bạn có thể kéo thả file nhạc vào khung thêm bài hát để phát ngay trong trình duyệt.
 6. Nhạc sẽ tự phát bài tiếp theo khi bài hiện tại kết thúc.
+
+## Link
+
+    https://sunnghenhac.netlify.app/
+    
