@@ -12,21 +12,16 @@
         <div>
           <p class="eyebrow">Music Player</p>
           <h1>Nghe nhạc đã tải về</h1>
-          <p class="subtext">Danh sách bài hát sẽ tự hiện từ thư mục <code>songs/</code> và các link URL bạn thêm vào.</p>
+          <p class="subtext">Danh sách bài hát sẽ tự hiện từ thư mục <code>songs/</code>. Bạn có thể kéo thả file nhạc để phát ngay.</p>
         </div>
       </section>
 
       <section class="player-card add-card">
         <div class="now-playing">
           <p class="label">Thêm bài hát</p>
-          <h2>Thêm từ link hoặc file</h2>
-          <p id="addStatus">Dán link SoundCloud hoặc kéo file nhạc vào khung bên dưới.</p>
+          <h2>Kéo thả file nhạc</h2>
+          <p id="addStatus">Kéo file âm thanh vào khung bên dưới hoặc bấm để chọn từ máy.</p>
         </div>
-
-        <form id="addForm" class="add-form">
-          <input id="songUrlInput" type="url" placeholder="https://soundcloud.com/..." autocomplete="off" />
-          <button type="submit">Thêm link</button>
-        </form>
 
         <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="Kéo thả file nhạc để tải lên">
           <strong>Kéo file nhạc vào đây</strong>
@@ -39,13 +34,10 @@
         <div class="now-playing">
           <p class="label">Đang phát</p>
           <h2 id="currentTitle">Chưa có bài nào</h2>
-          <p id="currentMeta">Hãy chọn file nhạc để bắt đầu</p>
+          <p id="currentMeta">Hãy chọn một bài trong danh sách hoặc kéo file vào phía trên.</p>
         </div>
 
         <audio id="audioPlayer" controls></audio>
-        <div id="soundcloudShell" class="soundcloud-shell" hidden>
-          <iframe id="soundcloudPlayer" title="SoundCloud player" allow="autoplay"></iframe>
-        </div>
 
         <div class="controls">
           <button id="prevBtn" type="button">Bài trước</button>

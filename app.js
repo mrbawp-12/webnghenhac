@@ -1,6 +1,4 @@
 const audioPlayer = document.getElementById("audioPlayer");
-const soundcloudShell = document.getElementById("soundcloudShell");
-const soundcloudPlayer = document.getElementById("soundcloudPlayer");
 const playlistEl = document.getElementById("playlist");
 const currentTitle = document.getElementById("currentTitle");
 const currentMeta = document.getElementById("currentMeta");
@@ -9,20 +7,15 @@ const prevBtn = document.getElementById("prevBtn");
 const playBtn = document.getElementById("playBtn");
 const randomBtn = document.getElementById("randomBtn");
 const nextBtn = document.getElementById("nextBtn");
-const addForm = document.getElementById("addForm");
-const songUrlInput = document.getElementById("songUrlInput");
 const addStatus = document.getElementById("addStatus");
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
 
 let tracks = [];
 let currentIndex = -1;
-let soundcloudWidget = null;
-let soundcloudScriptPromise = null;
-let activeSoundcloudUrl = "";
+const objectUrls = new Set();
 
 const TRACKS_MANIFEST = "songs.json";
-const TRACKS_API = "/api/tracks";
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".webm"];
 
 function formatName(fileName) {
@@ -34,21 +27,12 @@ function isAudioFile(fileName) {
   return AUDIO_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
 
-function isSoundCloudUrl(url) {
-  try {
-    const host = new URL(url).hostname.toLowerCase();
-    return host.endsWith("soundcloud.com") || host === "snd.sc" || host === "on.soundcloud.com";
-  } catch (_) {
-    return false;
-  }
-}
-
 function isPlayableTrack(track) {
   if (!track || typeof track !== "object") return false;
-  if (track.type === "soundcloud") return true;
+  if (track.type === "upload") return true;
 
   const url = typeof track.url === "string" ? track.url.split("?")[0] : "";
-  return isAudioFile(url) || url.includes("/api/media");
+  return isAudioFile(url) || url.startsWith("blob:") || url.includes("/songs/") || url.includes("songs/");
 }
 
 function guessNameFromUrl(url) {
@@ -78,13 +62,12 @@ function normalizeTrack(item) {
   const url = typeof item.url === "string" && item.url ? new URL(item.url, window.location.href).href : "";
   if (!url) return null;
 
-  const type = item.type || (isSoundCloudUrl(url) ? "soundcloud" : url.includes("/api/media") ? "upload" : "local");
   const fileName = typeof item.fileName === "string" ? item.fileName : "";
   const name = typeof item.name === "string" && item.name ? item.name : formatName(fileName || guessNameFromUrl(url));
 
   return {
     ...item,
-    type,
+    type: item.type || (url.startsWith("blob:") ? "upload" : "local"),
     name,
     url,
   };
@@ -104,168 +87,21 @@ function dedupeTracks(items) {
   });
 }
 
-function setPlayerMode(mode) {
-  const isSoundCloud = mode === "soundcloud";
-  audioPlayer.hidden = isSoundCloud;
-  soundcloudShell.hidden = !isSoundCloud;
-}
-
-function soundcloudEmbedUrl(trackUrl) {
-  return `https://w.soundcloud.com/player/?url=${encodeURIComponent(trackUrl)}&color=%237c3aed&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&visual=true`;
-}
-
-function loadSoundCloudScript() {
-  if (window.SC?.Widget) return Promise.resolve();
-  if (soundcloudScriptPromise) return soundcloudScriptPromise;
-
-  soundcloudScriptPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://w.soundcloud.com/player/api.js";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Không tải được SoundCloud player"));
-    document.head.appendChild(script);
-  });
-
-  return soundcloudScriptPromise;
-}
-
-function bindSoundCloudEvents(widget) {
-  const events = window.SC?.Widget?.Events;
-  if (!widget || !events) return;
-
-  widget.bind(events.PLAY, () => renderPlaylist());
-  widget.bind(events.PAUSE, () => renderPlaylist());
-  widget.bind(events.FINISH, () => nextTrack());
-}
-
-async function createSoundCloudWidget(track) {
-  await loadSoundCloudScript();
-
-  return new Promise((resolve) => {
-    const embedUrl = soundcloudEmbedUrl(track.url);
-    activeSoundcloudUrl = track.url;
-    soundcloudPlayer.onload = () => {
-      soundcloudWidget = window.SC.Widget(soundcloudPlayer);
-      bindSoundCloudEvents(soundcloudWidget);
-      resolve(soundcloudWidget);
-    };
-    soundcloudPlayer.src = embedUrl;
-  });
-}
-
-function pauseActivePlayback() {
-  if (soundcloudWidget && currentTrack()?.type === "soundcloud") {
-    soundcloudWidget.pause();
-    return;
-  }
-
-  audioPlayer.pause();
-}
-
 function currentTrack() {
   return currentIndex >= 0 ? tracks[currentIndex] : null;
 }
 
-async function loadTracks() {
-  let manifestTracks = [];
-  let apiTracks = [];
+function updateNowPlaying() {
+  const track = currentTrack();
 
-  try {
-    const manifestResponse = await fetch(TRACKS_MANIFEST, { cache: "no-store" });
-    if (manifestResponse.ok) {
-      manifestTracks = normalizeTracks(await manifestResponse.json());
-    }
-  } catch (_) {
-    manifestTracks = [];
+  if (!track) {
+    currentTitle.textContent = "Chưa có bài nào";
+    currentMeta.textContent = "Hãy kéo một file nhạc vào khung bên trên để bắt đầu.";
+    return;
   }
 
-  try {
-    const response = await fetch(TRACKS_API, { cache: "no-store" });
-    if (response.ok) {
-      apiTracks = normalizeTracks(await response.json());
-    }
-  } catch (_) {
-    apiTracks = [];
-  }
-
-  tracks = dedupeTracks([...manifestTracks, ...apiTracks]);
-
-  if (!tracks.length) {
-    const response = await fetch("songs/");
-    if (!response.ok) throw new Error("Không đọc được danh sách bài hát");
-
-    const html = await response.text();
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const links = Array.from(doc.querySelectorAll("a[href]"));
-
-    tracks = dedupeTracks(
-      links
-        .map((link) => {
-          const href = link.getAttribute("href") || "";
-          if (!href || href === "../" || href.startsWith("?")) return null;
-
-          const fileUrl = new URL(href, new URL("songs/", window.location.href));
-          const fileName = decodeURIComponent(fileUrl.pathname.split("/").pop() || "");
-          if (!isAudioFile(fileName)) return null;
-
-          return {
-            type: "local",
-            name: formatName(fileName),
-            url: fileUrl.href,
-          };
-        })
-        .filter(Boolean),
-    );
-  }
-
-  currentIndex = -1;
-  updateNowPlaying();
-  renderPlaylist();
-}
-
-async function addTrack(url) {
-  const response = await fetch(TRACKS_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || "Không lưu được link nhạc");
-  }
-
-  return normalizeTrack(await response.json());
-}
-
-async function uploadFile(file) {
-  const arrayBuffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(arrayBuffer);
-  let binary = "";
-  const chunkSize = 0x8000;
-
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
-  }
-
-  const response = await fetch(TRACKS_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      type: "upload",
-      name: file.name,
-      mimeType: file.type || "audio/mpeg",
-      data: btoa(binary),
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || "Không tải được file nhạc");
-  }
-
-  return normalizeTrack(await response.json());
+  currentTitle.textContent = track.name;
+  currentMeta.textContent = `${currentIndex + 1}/${tracks.length}`;
 }
 
 function renderPlaylist() {
@@ -274,7 +110,7 @@ function renderPlaylist() {
 
   if (!tracks.length) {
     const empty = document.createElement("li");
-    empty.innerHTML = "<div><strong>Chưa có bài hát</strong><small>Dán link SoundCloud hoặc kéo file vào khung thêm bài hát</small></div>";
+    empty.innerHTML = "<div><strong>Chưa có bài hát</strong><small>Kéo file nhạc vào khung bên trên để thêm vào danh sách</small></div>";
     empty.style.cursor = "default";
     playlistEl.appendChild(empty);
     return;
@@ -283,18 +119,7 @@ function renderPlaylist() {
   tracks.forEach((track, index) => {
     const li = document.createElement("li");
     li.className = index === currentIndex ? "active" : "";
-    const label =
-      track.type === "soundcloud"
-        ? index === currentIndex
-          ? "Đang phát"
-          : "SoundCloud"
-        : track.type === "upload"
-          ? index === currentIndex
-            ? "Đang phát"
-            : "Đã tải lên"
-          : index === currentIndex
-            ? "Đang phát"
-            : "Nhấn để nghe";
+    const label = track.type === "upload" ? (index === currentIndex ? "Đang phát" : "Vừa thêm") : index === currentIndex ? "Đang phát" : "Nhấn để nghe";
     li.innerHTML = `
       <div>
         <strong>${track.name}</strong>
@@ -307,48 +132,62 @@ function renderPlaylist() {
   });
 }
 
-function updateNowPlaying() {
-  const track = currentTrack();
+async function loadTracks() {
+  let manifestTracks = [];
 
-  if (!track) {
-    currentTitle.textContent = "Chưa có bài nào";
-    currentMeta.textContent = "Thêm link SoundCloud hoặc kéo file nhạc vào khung bên trên";
-    return;
+  try {
+    const manifestResponse = await fetch(TRACKS_MANIFEST, { cache: "no-store" });
+    if (manifestResponse.ok) {
+      manifestTracks = normalizeTracks(await manifestResponse.json());
+    }
+  } catch (_) {
+    manifestTracks = [];
   }
 
-  currentTitle.textContent = track.name;
-  currentMeta.textContent = `${currentIndex + 1}/${tracks.length}`;
+  if (!manifestTracks.length) {
+    try {
+      const response = await fetch("songs/");
+      if (!response.ok) throw new Error("Không đọc được danh sách bài hát");
+
+      const html = await response.text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const links = Array.from(doc.querySelectorAll("a[href]"));
+
+      manifestTracks = dedupeTracks(
+        links
+          .map((link) => {
+            const href = link.getAttribute("href") || "";
+            if (!href || href === "../" || href.startsWith("?")) return null;
+
+            const fileUrl = new URL(href, new URL("songs/", window.location.href));
+            const fileName = decodeURIComponent(fileUrl.pathname.split("/").pop() || "");
+            if (!isAudioFile(fileName)) return null;
+
+            return {
+              type: "local",
+              name: formatName(fileName),
+              url: fileUrl.href,
+            };
+          })
+          .filter(Boolean),
+      );
+    } catch (_) {
+      manifestTracks = [];
+    }
+  }
+
+  tracks = manifestTracks;
+  currentIndex = -1;
+  updateNowPlaying();
+  renderPlaylist();
 }
 
 async function playTrack(index) {
   if (!tracks[index]) return;
 
   currentIndex = index;
-  const track = tracks[index];
-
-  if (track.type === "soundcloud") {
-    audioPlayer.pause();
-    setPlayerMode("soundcloud");
-    if (soundcloudWidget) {
-      soundcloudWidget.pause();
-    }
-    if (activeSoundcloudUrl !== track.url) {
-      await createSoundCloudWidget(track);
-    } else if (soundcloudWidget) {
-      soundcloudWidget.play();
-    }
-  } else {
-    if (soundcloudWidget) {
-      soundcloudWidget.pause();
-    }
-    setPlayerMode("audio");
-    soundcloudWidget = null;
-    activeSoundcloudUrl = "";
-    soundcloudPlayer.removeAttribute("src");
-    audioPlayer.src = track.url;
-    audioPlayer.play().catch(() => {});
-  }
-
+  audioPlayer.src = tracks[index].url;
+  await audioPlayer.play().catch(() => {});
   updateNowPlaying();
   renderPlaylist();
 }
@@ -383,59 +222,12 @@ function prevTrack() {
 function togglePlay() {
   if (!tracks.length) return;
 
-  const track = currentTrack();
-  if (!track) return;
-
-  if (track.type === "soundcloud") {
-    if (soundcloudWidget) {
-      soundcloudWidget.isPaused((paused) => {
-        if (paused) {
-          soundcloudWidget.play();
-        } else {
-          soundcloudWidget.pause();
-        }
-      });
-    }
-    return;
-  }
-
   if (audioPlayer.paused) {
     audioPlayer.play().catch(() => {});
   } else {
     audioPlayer.pause();
   }
 }
-
-audioPlayer.addEventListener("ended", nextTrack);
-audioPlayer.addEventListener("play", renderPlaylist);
-audioPlayer.addEventListener("pause", renderPlaylist);
-
-prevBtn.addEventListener("click", prevTrack);
-nextBtn.addEventListener("click", nextTrack);
-playBtn.addEventListener("click", togglePlay);
-randomBtn.addEventListener("click", randomTrack);
-
-addForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const url = songUrlInput.value.trim();
-
-  if (!url) return;
-
-  addStatus.textContent = "Đang lưu link...";
-  addForm.querySelector("button").disabled = true;
-
-  try {
-    const track = await addTrack(url);
-    tracks = dedupeTracks([...tracks, track]);
-    renderPlaylist();
-    addForm.reset();
-    addStatus.textContent = "Đã thêm link vào danh sách.";
-  } catch (error) {
-    addStatus.textContent = error.message;
-  } finally {
-    addForm.querySelector("button").disabled = false;
-  }
-});
 
 async function handleFileUpload(file) {
   if (!file) return;
@@ -445,15 +237,18 @@ async function handleFileUpload(file) {
     return;
   }
 
-  addStatus.textContent = "Đang tải file lên Netlify...";
-  try {
-    const track = await uploadFile(file);
-    tracks = dedupeTracks([...tracks, track]);
-    renderPlaylist();
-    addStatus.textContent = "Đã tải file lên và thêm vào danh sách.";
-  } catch (error) {
-    addStatus.textContent = error.message;
-  }
+  const objectUrl = URL.createObjectURL(file);
+  objectUrls.add(objectUrl);
+
+  const track = normalizeTrack({
+    type: "upload",
+    name: formatName(file.name),
+    url: objectUrl,
+  });
+
+  tracks = dedupeTracks([...tracks, track]);
+  addStatus.textContent = "Đã thêm file vào danh sách.";
+  await playTrack(tracks.length - 1);
 }
 
 dropZone.addEventListener("click", () => fileInput.click());
@@ -487,6 +282,19 @@ fileInput.addEventListener("change", async () => {
 dropZone.addEventListener("drop", async (event) => {
   const [file] = event.dataTransfer?.files || [];
   await handleFileUpload(file);
+});
+
+audioPlayer.addEventListener("ended", nextTrack);
+audioPlayer.addEventListener("play", renderPlaylist);
+audioPlayer.addEventListener("pause", renderPlaylist);
+
+prevBtn.addEventListener("click", prevTrack);
+nextBtn.addEventListener("click", nextTrack);
+playBtn.addEventListener("click", togglePlay);
+randomBtn.addEventListener("click", randomTrack);
+
+window.addEventListener("beforeunload", () => {
+  objectUrls.forEach((url) => URL.revokeObjectURL(url));
 });
 
 loadTracks().catch(() => {
