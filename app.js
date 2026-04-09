@@ -13,9 +13,9 @@ const fileInput = document.getElementById("fileInput");
 
 let tracks = [];
 let currentIndex = -1;
-const objectUrls = new Set();
 
 const TRACKS_MANIFEST = "songs.json";
+const TRACKS_API = "/api/tracks";
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".webm"];
 
 function formatName(fileName) {
@@ -32,7 +32,7 @@ function isPlayableTrack(track) {
   if (track.type === "upload") return true;
 
   const url = typeof track.url === "string" ? track.url.split("?")[0] : "";
-  return isAudioFile(url) || url.startsWith("blob:") || url.includes("/songs/") || url.includes("songs/");
+  return isAudioFile(url) || url.includes("/api/media") || url.includes("/songs/") || url.includes("songs/");
 }
 
 function guessNameFromUrl(url) {
@@ -67,7 +67,7 @@ function normalizeTrack(item) {
 
   return {
     ...item,
-    type: item.type || (url.startsWith("blob:") ? "upload" : "local"),
+    type: item.type || (url.includes("/api/media") ? "upload" : "local"),
     name,
     url,
   };
@@ -134,6 +134,8 @@ function renderPlaylist() {
 
 async function loadTracks() {
   let manifestTracks = [];
+  let apiTracks = [];
+  let folderTracks = [];
 
   try {
     const manifestResponse = await fetch(TRACKS_MANIFEST, { cache: "no-store" });
@@ -144,16 +146,23 @@ async function loadTracks() {
     manifestTracks = [];
   }
 
-  if (!manifestTracks.length) {
-    try {
-      const response = await fetch("songs/");
-      if (!response.ok) throw new Error("Không đọc được danh sách bài hát");
+  try {
+    const response = await fetch(TRACKS_API, { cache: "no-store" });
+    if (response.ok) {
+      apiTracks = normalizeTracks(await response.json());
+    }
+  } catch (_) {
+    apiTracks = [];
+  }
 
+  try {
+    const response = await fetch("songs/", { cache: "no-store" });
+    if (response.ok) {
       const html = await response.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
       const links = Array.from(doc.querySelectorAll("a[href]"));
 
-      manifestTracks = dedupeTracks(
+      folderTracks = dedupeTracks(
         links
           .map((link) => {
             const href = link.getAttribute("href") || "";
@@ -171,15 +180,33 @@ async function loadTracks() {
           })
           .filter(Boolean),
       );
-    } catch (_) {
-      manifestTracks = [];
     }
+  } catch (_) {
+    folderTracks = [];
   }
 
-  tracks = manifestTracks;
+  tracks = dedupeTracks([...manifestTracks, ...folderTracks, ...apiTracks]);
   currentIndex = -1;
   updateNowPlaying();
   renderPlaylist();
+}
+
+async function uploadFile(file) {
+  const response = await fetch(TRACKS_API, {
+    method: "POST",
+    headers: {
+      "Content-Type": file.type || "application/octet-stream",
+      "X-File-Name": encodeURIComponent(file.name),
+    },
+    body: file,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || "Không tải được file nhạc");
+  }
+
+  return normalizeTrack(await response.json());
 }
 
 async function playTrack(index) {
@@ -237,18 +264,16 @@ async function handleFileUpload(file) {
     return;
   }
 
-  const objectUrl = URL.createObjectURL(file);
-  objectUrls.add(objectUrl);
+  addStatus.textContent = "Đang lưu file...";
 
-  const track = normalizeTrack({
-    type: "upload",
-    name: formatName(file.name),
-    url: objectUrl,
-  });
-
-  tracks = dedupeTracks([...tracks, track]);
-  addStatus.textContent = "Đã thêm file vào danh sách.";
-  await playTrack(tracks.length - 1);
+  try {
+    const track = await uploadFile(file);
+    tracks = dedupeTracks([...tracks, track]);
+    addStatus.textContent = "Đã lưu file vào danh sách.";
+    await playTrack(tracks.findIndex((item) => item.url === track.url));
+  } catch (error) {
+    addStatus.textContent = error.message;
+  }
 }
 
 dropZone.addEventListener("click", () => fileInput.click());
@@ -292,10 +317,6 @@ prevBtn.addEventListener("click", prevTrack);
 nextBtn.addEventListener("click", nextTrack);
 playBtn.addEventListener("click", togglePlay);
 randomBtn.addEventListener("click", randomTrack);
-
-window.addEventListener("beforeunload", () => {
-  objectUrls.forEach((url) => URL.revokeObjectURL(url));
-});
 
 loadTracks().catch(() => {
   tracks = [];

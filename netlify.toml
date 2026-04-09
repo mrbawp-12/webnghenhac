@@ -1,3 +1,14 @@
 [build]
 command = "npm run build"
 publish = "."
+functions = "netlify/functions"
+
+[[redirects]]
+from = "/api/tracks"
+to = "/.netlify/functions/tracks"
+status = 200
+
+[[redirects]]
+from = "/api/media"
+to = "/.netlify/functions/media"
+status = 200
