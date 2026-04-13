@@ -10,6 +10,11 @@ window.__SONGS_MANIFEST__ = [
     "url": "songs/%F0%9F%A5%80%20-%20dung%20ai%20nhac%20ve%20anh%20ay%20remix-futuredj.mp3"
   },
   {
+    "name": "Anh Khoa   Anh Ghét Làm Bạn Em   Anh Khoa Remix",
+    "fileName": "Anh Khoa - Anh Ghét Làm Bạn Em - Anh Khoa Remix.mp3",
+    "url": "songs/Anh%20Khoa%20-%20Anh%20Gh%C3%A9t%20L%C3%A0m%20B%E1%BA%A1n%20Em%20-%20Anh%20Khoa%20Remix.mp3"
+  },
+  {
     "name": "Anh Quân   Vì Người Không Xứng Đáng   Anh Quân Remix",
     "fileName": "Anh Quân - Vì Người Không Xứng Đáng - Anh Quân Remix.mp3",
     "url": "songs/Anh%20Qu%C3%A2n%20-%20V%C3%AC%20Ng%C6%B0%E1%BB%9Di%20Kh%C3%B4ng%20X%E1%BB%A9ng%20%C4%90%C3%A1ng%20-%20Anh%20Qu%C3%A2n%20Remix.mp3"
@@ -105,9 +110,9 @@ window.__SONGS_MANIFEST__ = [
     "url": "songs/Maison%20Merino%20-%20_T%E1%BA%A5t%20C%E1%BA%A3%20S%E1%BA%BD%20Thay%20Em%20(RIN%20Music%20Remix)%20-%20Ph%E1%BA%A1m%20Qu%E1%BB%B3nh%20Anh_.mp3"
   },
   {
-    "name": "minh   mixset #3   Thiệp Hồng Sai Tên (Noah Remix) x Bên Anh Đêm Nay (H.Virgo remix) x Mình Yêu Nhau Đi (Wicked Remix) x Người Đã Yêu Ai (Thazh x Đông Remix)",
-    "fileName": "minh - mixset #3 - Thiệp Hồng Sai Tên (Noah Remix) x Bên Anh Đêm Nay (H.Virgo remix) x Mình Yêu Nhau Đi (Wicked Remix) x Người Đã Yêu Ai (Thazh x Đông Remix).mp3",
-    "url": "songs/minh%20-%20mixset%20%233%20-%20Thi%E1%BB%87p%20H%E1%BB%93ng%20Sai%20T%C3%AAn%20(Noah%20Remix)%20x%20B%C3%AAn%20Anh%20%C4%90%C3%AAm%20Nay%20(H.Virgo%20remix)%20x%20M%C3%ACnh%20Y%C3%AAu%20Nhau%20%C4%90i%20(Wicked%20Remix)%20x%20Ng%C6%B0%E1%BB%9Di%20%C4%90%C3%A3%20Y%C3%AAu%20Ai%20(Thazh%20x%20%C4%90%C3%B4ng%20Remix).mp3"
+    "name": "minh   mixset 3   Thiệp Hồng Sai Tên (Noah Remix) x Bên Anh Đêm Nay (H.Virgo remix) x Mình Yêu Nhau Đi (Wicked Remix) x Người Đã Yêu Ai (Thazh x Đông Remix)",
+    "fileName": "minh - mixset 3 - Thiệp Hồng Sai Tên (Noah Remix) x Bên Anh Đêm Nay (H.Virgo remix) x Mình Yêu Nhau Đi (Wicked Remix) x Người Đã Yêu Ai (Thazh x Đông Remix).mp3",
+    "url": "songs/minh%20-%20mixset%203%20-%20Thi%E1%BB%87p%20H%E1%BB%93ng%20Sai%20T%C3%AAn%20(Noah%20Remix)%20x%20B%C3%AAn%20Anh%20%C4%90%C3%AAm%20Nay%20(H.Virgo%20remix)%20x%20M%C3%ACnh%20Y%C3%AAu%20Nhau%20%C4%90i%20(Wicked%20Remix)%20x%20Ng%C6%B0%E1%BB%9Di%20%C4%90%C3%A3%20Y%C3%AAu%20Ai%20(Thazh%20x%20%C4%90%C3%B4ng%20Remix).mp3"
   },
   {
     "name": "Mr. Sang   co khi nao roi xa remix 2020 duong edward ft vu kem remix 1425605",
@@ -145,6 +150,11 @@ window.__SONGS_MANIFEST__ = [
     "url": "songs/Nguyen%20Tung%20Duong%20-%20%C4%90%C3%81Y%20BI%E1%BB%82N%20X%20V%C3%82Y%20GI%E1%BB%AE%20REMIX%20%20FULL%20SET%20NH%E1%BA%A0C%20HOA%20PH%C3%81P%20S%C6%AF%20%C4%90%C3%94NG%20L%C3%80O%20REMIX%20HOT%202023.mp3"
   },
   {
+    "name": "Nguyễn Anh Quốc ✿   Anh Vui ( Mashup 15 in 1 Remix )",
+    "fileName": "Nguyễn Anh Quốc ✿ - Anh Vui ( Mashup 15 in 1 Remix ).mp3",
+    "url": "songs/Nguy%E1%BB%85n%20Anh%20Qu%E1%BB%91c%20%E2%9C%BF%20-%20Anh%20Vui%20(%20Mashup%2015%20in%201%20Remix%20).mp3"
+  },
+  {
     "name": "O day co nhac hayy   Xa Anh Chậm Thôi X Nửa Vầng Trăng Remix",
     "fileName": "O day co nhac hayy - Xa Anh Chậm Thôi X Nửa Vầng Trăng Remix.mp3",
     "url": "songs/O%20day%20co%20nhac%20hayy%20-%20Xa%20Anh%20Ch%E1%BA%ADm%20Th%C3%B4i%20X%20N%E1%BB%ADa%20V%E1%BA%A7ng%20Tr%C4%83ng%20Remix.mp3"
@@ -153,6 +163,11 @@ window.__SONGS_MANIFEST__ = [
     "name": "Overthinking   Cô Ấy Có Từng Đi Qua Giông Bão REMIX  Anh Nên Yêu Cô Ấy  Bản Chuẩn",
     "fileName": "Overthinking - Cô Ấy Có Từng Đi Qua Giông Bão REMIX  Anh Nên Yêu Cô Ấy  Bản Chuẩn.mp3",
     "url": "songs/Overthinking%20-%20C%C3%B4%20%E1%BA%A4y%20C%C3%B3%20T%E1%BB%ABng%20%C4%90i%20Qua%20Gi%C3%B4ng%20B%C3%A3o%20REMIX%20%20Anh%20N%C3%AAn%20Y%C3%AAu%20C%C3%B4%20%E1%BA%A4y%20%20B%E1%BA%A3n%20Chu%E1%BA%A9n.mp3"
+  },
+  {
+    "name": "Phan Hoang Son   Người ấy   remix",
+    "fileName": "Phan Hoang Son - Người ấy - remix.mp3",
+    "url": "songs/Phan%20Hoang%20Son%20-%20Ng%C6%B0%E1%BB%9Di%20%E1%BA%A5y%20-%20remix.mp3"
   },
   {
     "name": "pho xa dem dong nguoi...   Nguyễn Hoàng Hải   SoundLoadMate.com",
@@ -195,6 +210,11 @@ window.__SONGS_MANIFEST__ = [
     "url": "songs/thephong2303%20-%20%C4%90%C3%A0o%20N%C6%B0%C6%A1ng%20remix.mp3"
   },
   {
+    "name": "TRAN THANH SON   HẸN ANH KHI HOA CHƯA TÀN REMIX",
+    "fileName": "TRAN THANH SON - HẸN ANH KHI HOA CHƯA TÀN REMIX.mp3",
+    "url": "songs/TRAN%20THANH%20SON%20-%20H%E1%BA%B8N%20ANH%20KHI%20HOA%20CH%C6%AFA%20T%C3%80N%20REMIX.mp3"
+  },
+  {
     "name": "Trần Quang Trường ( Alex )   Chắc Gì Anh Đã Yêu Cô Ấy ft BIRTHDAY SEX Remix ( HuyN ft Trường Alex)",
     "fileName": "Trần Quang Trường ( Alex ) - Chắc Gì Anh Đã Yêu Cô Ấy ft BIRTHDAY SEX Remix ( HuyN ft Trường Alex).mp3",
     "url": "songs/Tr%E1%BA%A7n%20Quang%20Tr%C6%B0%E1%BB%9Dng%20(%20Alex%20)%20-%20Ch%E1%BA%AFc%20G%C3%AC%20Anh%20%C4%90%C3%A3%20Y%C3%AAu%20C%C3%B4%20%E1%BA%A4y%20ft%20BIRTHDAY%20SEX%20Remix%20(%20HuyN%20ft%20Tr%C6%B0%E1%BB%9Dng%20Alex).mp3"
@@ -213,5 +233,10 @@ window.__SONGS_MANIFEST__ = [
     "name": "Wzen Music   青絲  等什麼君 Thanh Ti  Đẳng Thập Ma Quân DJ版 remix 2023 抖音版",
     "fileName": "Wzen Music - 青絲  等什麼君 Thanh Ti  Đẳng Thập Ma Quân DJ版 remix 2023 抖音版.mp3",
     "url": "songs/Wzen%20Music%20-%20%E9%9D%92%E7%B5%B2%20%20%E7%AD%89%E4%BB%80%E9%BA%BC%E5%90%9B%20Thanh%20Ti%20%20%C4%90%E1%BA%B3ng%20Th%E1%BA%ADp%20Ma%20Qu%C3%A2n%20DJ%E7%89%88%20remix%202023%20%E6%8A%96%E9%9F%B3%E7%89%88.mp3"
+  },
+  {
+    "name": "Zenney   Bông hoa nở muộn Remix Tik Tok",
+    "fileName": "Zenney - Bông hoa nở muộn Remix Tik Tok.mp3",
+    "url": "songs/Zenney%20-%20Bo%CC%82ng%20hoa%20no%CC%9B%CC%89%20muo%CC%A3%CC%82n%20Remix%20Tik%20Tok.mp3"
   }
 ];

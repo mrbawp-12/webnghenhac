@@ -13,5 +13,5 @@ Trang web nghe nhạc đơn giản chạy trực tiếp trong trình duyệt.
 
 ## Link
 
-    https://sunnghenhac.netlify.app/
+    https://emsuncute.netlify.app/
     
