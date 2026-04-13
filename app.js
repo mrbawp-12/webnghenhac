@@ -16,6 +16,8 @@ let currentIndex = -1;
 
 const TRACKS_MANIFEST = "songs.json";
 const TRACKS_API = "/api/tracks";
+const TRACKS_CACHE_KEY = "web-nghe-nhac.tracks";
+const CURRENT_TRACK_KEY = "web-nghe-nhac.currentTrackUrl";
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".webm"];
 
 function formatName(fileName) {
@@ -87,6 +89,45 @@ function dedupeTracks(items) {
   });
 }
 
+function getEmbeddedTracks() {
+  return Array.isArray(window.__SONGS_MANIFEST__) ? normalizeTracks(window.__SONGS_MANIFEST__) : [];
+}
+
+function readCachedTracks() {
+  try {
+    const cached = localStorage.getItem(TRACKS_CACHE_KEY);
+    return cached ? normalizeTracks(JSON.parse(cached)) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveCachedTracks(nextTracks) {
+  try {
+    localStorage.setItem(TRACKS_CACHE_KEY, JSON.stringify(nextTracks));
+  } catch (_) {}
+}
+
+function rememberCurrentTrackUrl(url) {
+  try {
+    if (url) {
+      localStorage.setItem(CURRENT_TRACK_KEY, url);
+    } else {
+      localStorage.removeItem(CURRENT_TRACK_KEY);
+    }
+  } catch (_) {}
+}
+
+function restoreCurrentIndex(list) {
+  try {
+    const currentUrl = localStorage.getItem(CURRENT_TRACK_KEY);
+    if (!currentUrl) return -1;
+    return list.findIndex((track) => track.url === currentUrl);
+  } catch (_) {
+    return -1;
+  }
+}
+
 function currentTrack() {
   return currentIndex >= 0 ? tracks[currentIndex] : null;
 }
@@ -133,17 +174,17 @@ function renderPlaylist() {
 }
 
 async function loadTracks() {
-  let manifestTracks = [];
+  let manifestTracks = getEmbeddedTracks();
   let apiTracks = [];
   let folderTracks = [];
 
   try {
     const manifestResponse = await fetch(TRACKS_MANIFEST, { cache: "no-store" });
     if (manifestResponse.ok) {
-      manifestTracks = normalizeTracks(await manifestResponse.json());
+      manifestTracks = dedupeTracks([...manifestTracks, ...normalizeTracks(await manifestResponse.json())]);
     }
   } catch (_) {
-    manifestTracks = [];
+    manifestTracks = manifestTracks.length ? manifestTracks : readCachedTracks();
   }
 
   try {
@@ -185,8 +226,10 @@ async function loadTracks() {
     folderTracks = [];
   }
 
-  tracks = dedupeTracks([...manifestTracks, ...folderTracks, ...apiTracks]);
-  currentIndex = -1;
+  const combinedTracks = dedupeTracks([...manifestTracks, ...folderTracks, ...apiTracks]);
+  tracks = combinedTracks.length ? combinedTracks : readCachedTracks();
+  saveCachedTracks(tracks);
+  currentIndex = restoreCurrentIndex(tracks);
   updateNowPlaying();
   renderPlaylist();
 }
@@ -213,6 +256,7 @@ async function playTrack(index) {
   if (!tracks[index]) return;
 
   currentIndex = index;
+  rememberCurrentTrackUrl(tracks[index].url);
   audioPlayer.src = tracks[index].url;
   await audioPlayer.play().catch(() => {});
   updateNowPlaying();
@@ -269,6 +313,7 @@ async function handleFileUpload(file) {
   try {
     const track = await uploadFile(file);
     tracks = dedupeTracks([...tracks, track]);
+    saveCachedTracks(tracks);
     addStatus.textContent = "Đã lưu file vào danh sách.";
     await playTrack(tracks.findIndex((item) => item.url === track.url));
   } catch (error) {

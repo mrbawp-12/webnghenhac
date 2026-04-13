@@ -4,6 +4,7 @@ const path = require("path");
 const rootDir = __dirname;
 const songsDir = path.join(rootDir, "songs");
 const manifestPath = path.join(rootDir, "songs.json");
+const embeddedManifestPath = path.join(rootDir, "songs-data.js");
 const audioExtensions = [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".webm"];
 
 function isAudioFile(fileName) {
@@ -26,3 +27,4 @@ const tracks = fs
   .sort((a, b) => a.name.localeCompare(b.name, "vi"));
 
 fs.writeFileSync(manifestPath, `${JSON.stringify(tracks, null, 2)}\n`, "utf8");
+fs.writeFileSync(embeddedManifestPath, `window.__SONGS_MANIFEST__ = ${JSON.stringify(tracks, null, 2)};\n`, "utf8");
