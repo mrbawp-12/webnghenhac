@@ -13,5 +13,6 @@ Trang web nghe nhạc đơn giản chạy trực tiếp trong trình duyệt.
 
 ## Link
 
-    https://emsuncute.netlify.app/
+    https://emsuncute.netlify.app/ cũ
     
+    https://mrbawp-12.github.io/webnghenhac/ mới
