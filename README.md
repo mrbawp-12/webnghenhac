@@ -4,12 +4,7 @@ Trang web nghe nhạc đơn giản chạy trực tiếp trong trình duyệt.
 
 ## Cách dùng
 
-1. Bỏ file nhạc vào thư mục `songs/`.
-2. Chạy `npm install` rồi `node build.js` để tạo `songs.json`.
-3. Mở `index.html` bằng trình duyệt, hoặc chạy một local server.
-4. Danh sách sẽ tự hiện, bấm vào bài nào để phát bài đó.
-5. Bạn có thể kéo thả file nhạc vào khung thêm bài hát để phát ngay trong trình duyệt và lưu lại cho lần sau.
-6. Nhạc sẽ tự phát bài tiếp theo khi bài hiện tại kết thúc.
+====== ĐĂNG NHẬP THEO ĐƯỜNG LINK BÊN DƯỚI ======
 
 ## Link
 
