@@ -10,14 +10,19 @@ const nextBtn = document.getElementById("nextBtn");
 const addStatus = document.getElementById("addStatus");
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
+const searchInput = document.getElementById("searchInput");
 
 let tracks = [];
 let currentIndex = -1;
+let searchQuery = "";
 
 const TRACKS_MANIFEST = "songs.json";
 const TRACKS_API = "/api/tracks";
 const TRACKS_CACHE_KEY = "web-nghe-nhac.tracks";
 const CURRENT_TRACK_KEY = "web-nghe-nhac.currentTrackUrl";
+const LOCAL_DB_NAME = "web-nghe-nhac";
+const LOCAL_DB_VERSION = 1;
+const LOCAL_TRACKS_STORE = "localTracks";
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".webm"];
 
 function formatName(fileName) {
@@ -27,6 +32,92 @@ function formatName(fileName) {
 function isAudioFile(fileName) {
   const lower = fileName.toLowerCase();
   return AUDIO_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+
+function normalizeSearchText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/đ/g, "d")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function openLocalTracksDb() {
+  return new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) {
+      reject(new Error("Trình duyệt không hỗ trợ lưu file nhạc."));
+      return;
+    }
+
+    const request = indexedDB.open(LOCAL_DB_NAME, LOCAL_DB_VERSION);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(LOCAL_TRACKS_STORE)) {
+        db.createObjectStore(LOCAL_TRACKS_STORE, { keyPath: "id" });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Không mở được bộ nhớ nhạc."));
+  });
+}
+
+function localTrackRecordToTrack(record) {
+  const file = record.file;
+  if (!file) return null;
+  return {
+    type: "upload",
+    source: "indexeddb",
+    localId: record.id,
+    name: record.name || formatName(record.fileName || "Bài hát đã thêm"),
+    fileName: record.fileName || file?.name || "",
+    mimeType: record.mimeType || file?.type || "audio/mpeg",
+    url: URL.createObjectURL(file),
+  };
+}
+
+async function loadLocalUploadedTracks() {
+  let db;
+  try {
+    db = await openLocalTracksDb();
+    return await new Promise((resolve, reject) => {
+      const request = db.transaction(LOCAL_TRACKS_STORE, "readonly").objectStore(LOCAL_TRACKS_STORE).getAll();
+      request.onsuccess = () => resolve((request.result || []).map(localTrackRecordToTrack).filter(Boolean));
+      request.onerror = () => reject(request.error || new Error("Không đọc được nhạc đã lưu."));
+    });
+  } catch (_) {
+    return [];
+  } finally {
+    db?.close();
+  }
+}
+
+async function saveLocalUploadedTrack(file) {
+  let db;
+  try {
+    db = await openLocalTracksDb();
+    const id = `local-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const record = {
+      id,
+      file,
+      fileName: file.name,
+      name: formatName(file.name),
+      mimeType: file.type || "audio/mpeg",
+      createdAt: Date.now(),
+    };
+
+    await new Promise((resolve, reject) => {
+      const request = db.transaction(LOCAL_TRACKS_STORE, "readwrite").objectStore(LOCAL_TRACKS_STORE).put(record);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error || new Error("Không lưu được file nhạc."));
+    });
+
+    return localTrackRecordToTrack(record);
+  } finally {
+    db?.close();
+  }
 }
 
 function isPlayableTrack(track) {
@@ -80,13 +171,35 @@ function normalizeTracks(data) {
   return data.map(normalizeTrack).filter((track) => track && isPlayableTrack(track));
 }
 
+function trackStorageKey(track) {
+  if (track?.localId) return `local:${track.localId}`;
+  return track?.url || "";
+}
+
 function dedupeTracks(items) {
   const seen = new Set();
   return items.filter((track) => {
-    if (!track?.url || seen.has(track.url)) return false;
-    seen.add(track.url);
+    const key = trackStorageKey(track);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
+}
+
+function serializableTrack(track) {
+  if (track.source === "indexeddb" || track.url?.startsWith("blob:")) return null;
+  return track;
+}
+
+function getFilteredTrackEntries() {
+  const terms = normalizeSearchText(searchQuery).split(/\s+/).filter(Boolean);
+  return tracks
+    .map((track, index) => ({ track, index }))
+    .filter(({ track }) => {
+      if (!terms.length) return true;
+      const name = normalizeSearchText(track.name);
+      return terms.every((term) => name.includes(term));
+    });
 }
 
 function getEmbeddedTracks() {
@@ -104,14 +217,15 @@ function readCachedTracks() {
 
 function saveCachedTracks(nextTracks) {
   try {
-    localStorage.setItem(TRACKS_CACHE_KEY, JSON.stringify(nextTracks));
+    localStorage.setItem(TRACKS_CACHE_KEY, JSON.stringify(nextTracks.map(serializableTrack).filter(Boolean)));
   } catch (_) {}
 }
 
-function rememberCurrentTrackUrl(url) {
+function rememberCurrentTrack(track) {
   try {
-    if (url) {
-      localStorage.setItem(CURRENT_TRACK_KEY, url);
+    const key = trackStorageKey(track);
+    if (key) {
+      localStorage.setItem(CURRENT_TRACK_KEY, key);
     } else {
       localStorage.removeItem(CURRENT_TRACK_KEY);
     }
@@ -120,9 +234,9 @@ function rememberCurrentTrackUrl(url) {
 
 function restoreCurrentIndex(list) {
   try {
-    const currentUrl = localStorage.getItem(CURRENT_TRACK_KEY);
-    if (!currentUrl) return -1;
-    return list.findIndex((track) => track.url === currentUrl);
+    const currentKey = localStorage.getItem(CURRENT_TRACK_KEY);
+    if (!currentKey) return -1;
+    return list.findIndex((track) => trackStorageKey(track) === currentKey || track.url === currentKey);
   } catch (_) {
     return -1;
   }
@@ -145,29 +259,47 @@ function updateNowPlaying() {
   currentMeta.textContent = `${currentIndex + 1}/${tracks.length}`;
 }
 
+function appendPlaylistText(parent, titleText, subtitleText) {
+  const wrapper = document.createElement("div");
+  const title = document.createElement("strong");
+  const subtitle = document.createElement("small");
+
+  title.textContent = titleText;
+  subtitle.textContent = subtitleText;
+  wrapper.append(title, subtitle);
+  parent.appendChild(wrapper);
+}
+
 function renderPlaylist() {
-  playlistEl.innerHTML = "";
-  countText.textContent = `${tracks.length} bài`;
+  playlistEl.replaceChildren();
+  const visibleEntries = getFilteredTrackEntries();
+  countText.textContent = searchQuery ? `${visibleEntries.length}/${tracks.length} bài` : `${tracks.length} bài`;
 
   if (!tracks.length) {
     const empty = document.createElement("li");
-    empty.innerHTML = "<div><strong>Chưa có bài hát</strong><small>Kéo file nhạc vào khung bên trên để thêm vào danh sách</small></div>";
+    appendPlaylistText(empty, "Chưa có bài hát", "Kéo file nhạc vào khung bên trên để thêm vào danh sách");
     empty.style.cursor = "default";
     playlistEl.appendChild(empty);
     return;
   }
 
-  tracks.forEach((track, index) => {
+  if (!visibleEntries.length) {
+    const empty = document.createElement("li");
+    appendPlaylistText(empty, "Không tìm thấy bài hát", "Thử nhập tên hoặc vài từ khác trong tên bài hát");
+    empty.style.cursor = "default";
+    playlistEl.appendChild(empty);
+    return;
+  }
+
+  visibleEntries.forEach(({ track, index }) => {
     const li = document.createElement("li");
+    const order = document.createElement("small");
+    const label = track.type === "upload" ? (index === currentIndex ? "Đang phát" : "Đã thêm") : index === currentIndex ? "Đang phát" : "Nhấn để nghe";
+
     li.className = index === currentIndex ? "active" : "";
-    const label = track.type === "upload" ? (index === currentIndex ? "Đang phát" : "Vừa thêm") : index === currentIndex ? "Đang phát" : "Nhấn để nghe";
-    li.innerHTML = `
-      <div>
-        <strong>${track.name}</strong>
-        <small>${label}</small>
-      </div>
-      <small>${index + 1}</small>
-    `;
+    appendPlaylistText(li, track.name, label);
+    order.textContent = String(index + 1);
+    li.appendChild(order);
     li.addEventListener("click", () => playTrack(index));
     playlistEl.appendChild(li);
   });
@@ -177,6 +309,7 @@ async function loadTracks() {
   let manifestTracks = getEmbeddedTracks();
   let apiTracks = [];
   let folderTracks = [];
+  const localUploadedTracks = await loadLocalUploadedTracks();
 
   try {
     const manifestResponse = await fetch(TRACKS_MANIFEST, { cache: "no-store" });
@@ -226,37 +359,49 @@ async function loadTracks() {
     folderTracks = [];
   }
 
-  const combinedTracks = dedupeTracks([...manifestTracks, ...folderTracks, ...apiTracks]);
+  const combinedTracks = dedupeTracks([...manifestTracks, ...folderTracks, ...apiTracks, ...localUploadedTracks]);
   tracks = combinedTracks.length ? combinedTracks : readCachedTracks();
   saveCachedTracks(tracks);
   currentIndex = restoreCurrentIndex(tracks);
+  if (currentIndex >= 0) {
+    audioPlayer.src = tracks[currentIndex].url;
+  }
   updateNowPlaying();
   renderPlaylist();
 }
 
 async function uploadFile(file) {
-  const response = await fetch(TRACKS_API, {
-    method: "POST",
-    headers: {
-      "Content-Type": file.type || "application/octet-stream",
-      "X-File-Name": encodeURIComponent(file.name),
-    },
-    body: file,
-  });
+  try {
+    const response = await fetch(TRACKS_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": file.type || "application/octet-stream",
+        "X-File-Name": encodeURIComponent(file.name),
+      },
+      body: file,
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || "Không tải được file nhạc");
+    if (response.ok) {
+      return {
+        storage: "cloud",
+        track: normalizeTrack(await response.json()),
+      };
+    }
+  } catch (_) {
+    // Static hosting such as GitHub Pages does not have /api/tracks.
   }
 
-  return normalizeTrack(await response.json());
+  return {
+    storage: "browser",
+    track: await saveLocalUploadedTrack(file),
+  };
 }
 
 async function playTrack(index) {
   if (!tracks[index]) return;
 
   currentIndex = index;
-  rememberCurrentTrackUrl(tracks[index].url);
+  rememberCurrentTrack(tracks[index]);
   audioPlayer.src = tracks[index].url;
   await audioPlayer.play().catch(() => {});
   updateNowPlaying();
@@ -293,6 +438,15 @@ function prevTrack() {
 function togglePlay() {
   if (!tracks.length) return;
 
+  if (currentIndex < 0) {
+    playTrack(0);
+    return;
+  }
+
+  if (!audioPlayer.src) {
+    audioPlayer.src = tracks[currentIndex].url;
+  }
+
   if (audioPlayer.paused) {
     audioPlayer.play().catch(() => {});
   } else {
@@ -311,13 +465,17 @@ async function handleFileUpload(file) {
   addStatus.textContent = "Đang lưu file...";
 
   try {
-    const track = await uploadFile(file);
+    const { track, storage } = await uploadFile(file);
+    if (!track) throw new Error("Không tạo được bài hát từ file đã chọn.");
+
+    searchQuery = "";
+    searchInput.value = "";
     tracks = dedupeTracks([...tracks, track]);
     saveCachedTracks(tracks);
-    addStatus.textContent = "Đã lưu file vào danh sách.";
-    await playTrack(tracks.findIndex((item) => item.url === track.url));
+    addStatus.textContent = storage === "cloud" ? "Thêm thành công. File đã được lưu online." : "Thêm thành công. File đã được lưu trong trình duyệt này.";
+    await playTrack(tracks.findIndex((item) => trackStorageKey(item) === trackStorageKey(track)));
   } catch (error) {
-    addStatus.textContent = error.message;
+    addStatus.textContent = error.message || "Không lưu được file nhạc.";
   }
 }
 
@@ -362,6 +520,10 @@ prevBtn.addEventListener("click", prevTrack);
 nextBtn.addEventListener("click", nextTrack);
 playBtn.addEventListener("click", togglePlay);
 randomBtn.addEventListener("click", randomTrack);
+searchInput.addEventListener("input", () => {
+  searchQuery = searchInput.value;
+  renderPlaylist();
+});
 
 loadTracks().catch(() => {
   tracks = [];

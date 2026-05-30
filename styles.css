@@ -156,6 +156,33 @@ button:hover {
   margin-bottom: 16px;
 }
 
+.search-box {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.search-box span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.search-box input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font: inherit;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.88);
+  outline: none;
+}
+
+.search-box input:focus {
+  border-color: rgba(37, 99, 235, 0.65);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
 .playlist {
   list-style: none;
   margin: 0;
