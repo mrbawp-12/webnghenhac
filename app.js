@@ -370,7 +370,7 @@ async function loadTracks() {
   renderPlaylist();
 }
 
-async function uploadFile(file) {
+async function uploadFile(file) {             // upload file len server, neu that bai thi luu local
   try {
     const response = await fetch(TRACKS_API, {
       method: "POST",
@@ -391,6 +391,7 @@ async function uploadFile(file) {
     // Static hosting such as GitHub Pages does not have /api/tracks.
   }
 
+  // neu khong upload len server duoc thi se duoc luu o trinh duyet
   return {
     storage: "browser",
     track: await saveLocalUploadedTrack(file),
