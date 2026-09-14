@@ -55,8 +55,8 @@ window.__SONGS_MANIFEST__ = [
     "url": "songs/Chien%20Keo%20-%20Nu%CC%A3%20Ho%CC%82%CC%80ng%20Mong%20Manh%20-%20Tha%CC%81i%20Hoa%CC%80ng%20Remix%20%20By%20Chien%20Keo.mp3"
   },
   {
-    "name": "Co ay mat uot le nhoa    Houselak   SoundLoadMate.com",
-    "fileName": "Co ay mat uot le nhoa  - Houselak -  - SoundLoadMate.com.mp3",
+    "name": "Co ay mat uot le nhoa    Houselak   ⛈️   SoundLoadMate.com",
+    "fileName": "Co ay mat uot le nhoa  - Houselak - ⛈️ - SoundLoadMate.com.mp3",
     "url": "songs/Co%20ay%20mat%20uot%20le%20nhoa%20%20-%20Houselak%20-%20%E2%9B%88%EF%B8%8F%20-%20SoundLoadMate.com.mp3"
   },
   {
@@ -155,8 +155,8 @@ window.__SONGS_MANIFEST__ = [
     "url": "songs/Ng%20Tu%E1%BA%A5n%20Anh%20-%20H%E1%BB%8Fi%20Th%C4%83m%20Nhau%20Remix%20-%20(Toann%20x%20Hasu)%20Cut.mp3"
   },
   {
-    "name": "𝑵𝒈𝑫.𝑵𝒈𝒖𝒚𝒆𝒏    Chỉ Bằng Một Cái Gật Đầu   VânAnh Remix",
-    "fileName": "𝑵𝒈𝑫.𝑵𝒈𝒖𝒚𝒆𝒏  - Chỉ Bằng Một Cái Gật Đầu - VânAnh Remix.mp3",
+    "name": "𝑵𝒈𝑫.𝑵𝒈𝒖𝒚𝒆𝒏 ⚜️   Chỉ Bằng Một Cái Gật Đầu   VânAnh Remix",
+    "fileName": "𝑵𝒈𝑫.𝑵𝒈𝒖𝒚𝒆𝒏 ⚜️ - Chỉ Bằng Một Cái Gật Đầu - VânAnh Remix.mp3",
     "url": "songs/%F0%9D%91%B5%F0%9D%92%88%F0%9D%91%AB.%F0%9D%91%B5%F0%9D%92%88%F0%9D%92%96%F0%9D%92%9A%F0%9D%92%86%F0%9D%92%8F%20%E2%9A%9C%EF%B8%8F%20-%20Ch%E1%BB%89%20B%E1%BA%B1ng%20M%E1%BB%99t%20C%C3%A1i%20G%E1%BA%ADt%20%C4%90%E1%BA%A7u%20-%20V%C3%A2nAnh%20Remix.mp3"
   },
   {
@@ -235,8 +235,8 @@ window.__SONGS_MANIFEST__ = [
     "url": "songs/thephong2303%20-%20%C4%90%C3%A0o%20N%C6%B0%C6%A1ng%20remix.mp3"
   },
   {
-    "name": "THỜI GIAN SẼ TRẢ LỜI REMIX x YÊU 5 HOT TIKTOK DJ Tạo Muiz  Mr Tạo Muzic   SoundLoadMate.com",
-    "fileName": "THỜI GIAN SẼ TRẢ LỜI REMIX x YÊU 5 HOT TIKTOK-DJ Tạo Muiz - Mr Tạo Muzic - SoundLoadMate.com.mp3",
+    "name": "THỜI GIAN SẼ TRẢ LỜI REMIX x YÊU 5 HOT TIKTOK DJ Tạo Muiz✈️   Mr Tạo Muzic🐬   SoundLoadMate.com",
+    "fileName": "THỜI GIAN SẼ TRẢ LỜI REMIX x YÊU 5 HOT TIKTOK-DJ Tạo Muiz✈️ - Mr Tạo Muzic🐬 - SoundLoadMate.com.mp3",
     "url": "songs/TH%E1%BB%9CI%20GIAN%20S%E1%BA%BC%20TR%E1%BA%A2%20L%E1%BB%9CI%20REMIX%20x%20Y%C3%8AU%205%20HOT%20TIKTOK-DJ%20T%E1%BA%A1o%20Muiz%E2%9C%88%EF%B8%8F%20-%20Mr%20T%E1%BA%A1o%20Muzic%F0%9F%90%AC%20-%20SoundLoadMate.com.mp3"
   },
   {
@@ -260,8 +260,8 @@ window.__SONGS_MANIFEST__ = [
     "url": "songs/Tr%E1%BA%A7n%20Quang%20Tr%C6%B0%E1%BB%9Dng%20(%20Alex%20)%20-%20Ch%E1%BA%AFc%20G%C3%AC%20Anh%20%C4%90%C3%A3%20Y%C3%AAu%20C%C3%B4%20%E1%BA%A4y%20ft%20BIRTHDAY%20SEX%20Remix%20(%20HuyN%20ft%20Tr%C6%B0%E1%BB%9Dng%20Alex).mp3"
   },
   {
-    "name": "Trouble Maker ft Is a best    TinoRemix    𝙉𝙃𝘼𝙏 𝙉𝙂𝙐𝙔𝙀𝙉     SoundLoadMate.com",
-    "fileName": "Trouble Maker ft Is a best  - TinoRemix- - 𝙉𝙃𝘼𝙏 𝙉𝙂𝙐𝙔𝙀𝙉   - SoundLoadMate.com.mp3",
+    "name": "Trouble Maker ft Is a best    TinoRemix    𝙉𝙃𝘼𝙏 𝙉𝙂𝙐𝙔𝙀𝙉  ✪   SoundLoadMate.com",
+    "fileName": "Trouble Maker ft Is a best  - TinoRemix- - 𝙉𝙃𝘼𝙏 𝙉𝙂𝙐𝙔𝙀𝙉  ✪ - SoundLoadMate.com.mp3",
     "url": "songs/Trouble%20Maker%20ft%20Is%20a%20best%20%20-%20TinoRemix-%20-%20%F0%9D%99%89%F0%9D%99%83%F0%9D%98%BC%F0%9D%99%8F%20%F0%9D%99%89%F0%9D%99%82%F0%9D%99%90%F0%9D%99%94%F0%9D%99%80%F0%9D%99%89%20%20%E2%9C%AA%20-%20SoundLoadMate.com.mp3"
   },
   {

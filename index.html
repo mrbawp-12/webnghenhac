@@ -1,64 +1,278 @@
 <!doctype html>
-<html lang="vi">
+<html lang="vi" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Em Sún Ctue</title>
+    <title>Web Nghe Nhạc | Trình Phát Nhạc Trực Tuyến & Offline</title>
+    <meta name="description" content="Trình phát nhạc cao cấp, hỗ trợ nghe nhạc có sẵn, tải nhạc lên lưu trữ trong trình duyệt offline và online." />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>" />
   </head>
   <body>
     <main class="app">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">Music Player</p>
-          <h1>Nghe nhạc đã tải về</h1>
-          <p class="subtext">Danh sách bài hát sẽ tự hiện từ thư mục <code>songs/</code>. Bạn có thể kéo thả file nhạc để phát ngay và được lưu lại.</p>
-        </div>
-      </section>
-
-      <section class="player-card add-card">
-        <div class="now-playing">
-          <p class="label">Thêm bài hát</p>
-          <h2>Kéo thả file nhạc</h2>
-          <p id="addStatus">Kéo file âm thanh vào khung bên dưới hoặc bấm để chọn từ máy. File sẽ được lưu lại.</p>
-        </div>
-
-        <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="Kéo thả file nhạc để tải lên">
-          <strong>Kéo file nhạc vào đây</strong>
-          <small>Hoặc bấm để chọn file từ máy</small>
-          <input id="fileInput" type="file" accept="audio/*" hidden />
-        </div>
-      </section>
-
-      <section class="player-card">
-        <div class="now-playing">
-          <p class="label">Đang phát</p>
-          <h2 id="currentTitle">Chưa có bài nào</h2>
-          <p id="currentMeta">Hãy chọn một bài trong danh sách hoặc kéo file vào phía trên.</p>
+      <!-- Header Bar -->
+      <header class="top-header">
+        <div class="brand-info">
+          <div class="brand-logo" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1>Web Nghe Nhạc</h1>
+            <p>Trình phát nhạc hiện đại &amp; lưu trữ thông minh</p>
+          </div>
         </div>
 
-        <audio id="audioPlayer" controls></audio>
-
-        <div class="controls">
-          <button id="prevBtn" type="button">Bài trước</button>
-          <button id="playBtn" type="button">Phát / Tạm dừng</button>
-          <button id="randomBtn" type="button">Phát ngẫu nhiên</button>
-          <button id="nextBtn" type="button">Bài tiếp</button>
+        <div class="header-actions">
+          <button id="shortcutsBtn" class="icon-btn" type="button" title="Phím tắt bàn phím" aria-label="Phím tắt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+              <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10"></path>
+            </svg>
+          </button>
+          <button id="themeToggleBtn" class="icon-btn" type="button" title="Đổi giao diện Sáng / Tối" aria-label="Đổi giao diện">
+            <!-- Moon Icon (for dark theme) -->
+            <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
         </div>
-      </section>
+      </header>
 
-      <section class="playlist-card">
-        <div class="playlist-header">
-          <h3>Danh sách nhạc</h3>
-          <p id="countText">0 bài</p>
+      <!-- Main Layout Grid -->
+      <div class="main-grid">
+        <!-- Left Column: Music Player Showcase & Controls & Upload -->
+        <div class="player-container">
+          <!-- Main Player Showcase -->
+          <section class="glass-card" aria-label="Trình phát nhạc">
+            <div class="visualizer-wrapper">
+              <div id="vinylDisc" class="vinyl-disc">
+                <div class="vinyl-center">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                  </svg>
+                </div>
+              </div>
+
+              <div id="waveVisualizer" class="wave-bars" aria-hidden="true">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+            </div>
+
+            <!-- Track Info -->
+            <div class="track-meta" style="margin-top: 16px;">
+              <h2 id="currentTitle" class="track-title">Chưa chọn bài nào</h2>
+              <div class="track-subtitle">
+                <span id="currentMeta">Chọn một bài hát để phát</span>
+                <span id="trackBadge" class="badge" style="display: none;">Gốc</span>
+              </div>
+            </div>
+
+            <!-- Hidden Audio Element -->
+            <audio id="audioPlayer" preload="metadata"></audio>
+
+            <!-- Custom Seekbar & Progress -->
+            <div class="progress-container" style="margin-top: 20px;">
+              <div id="progressWrapper" class="progress-bar-wrapper">
+                <div id="progressFill" class="progress-fill"></div>
+                <input id="seekSlider" class="progress-input" type="range" min="0" max="100" value="0" step="0.1" aria-label="Thanh thời gian bài hát" />
+              </div>
+              <div class="time-row">
+                <span id="currentTime">00:00</span>
+                <span id="totalDuration">00:00</span>
+              </div>
+            </div>
+
+            <!-- Player Controls -->
+            <div class="player-controls" style="margin-top: 16px;">
+              <div class="primary-controls">
+                <!-- Shuffle Button -->
+                <button id="shuffleBtn" class="ctrl-btn" type="button" title="Phát ngẫu nhiên (S)" aria-label="Phát ngẫu nhiên">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 3 21 3 21 8"></polyline>
+                    <line x1="4" y1="20" x2="21" y2="3"></line>
+                    <polyline points="21 16 21 21 16 21"></polyline>
+                    <line x1="15" y1="15" x2="21" y2="21"></line>
+                    <line x1="4" y1="4" x2="9" y2="9"></line>
+                  </svg>
+                </button>
+
+                <!-- Prev Button -->
+                <button id="prevBtn" class="ctrl-btn" type="button" title="Bài trước (←)" aria-label="Bài trước">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"></path>
+                  </svg>
+                </button>
+
+                <!-- Play/Pause Button -->
+                <button id="playBtn" class="play-btn-main" type="button" title="Phát / Tạm dừng (Space)" aria-label="Phát nhạc">
+                  <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"></path>
+                  </svg>
+                </button>
+
+                <!-- Next Button -->
+                <button id="nextBtn" class="ctrl-btn" type="button" title="Bài tiếp (→)" aria-label="Bài tiếp">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path>
+                  </svg>
+                </button>
+
+                <!-- Repeat Button -->
+                <button id="repeatBtn" class="ctrl-btn" type="button" title="Chế độ lặp lại (L)" aria-label="Chế độ lặp lại">
+                  <svg id="repeatIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="17 1 21 5 17 9"></polyline>
+                    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                    <polyline points="7 23 3 19 7 15"></polyline>
+                    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Secondary Row: Volume & Speed -->
+              <div class="secondary-controls">
+                <div class="volume-control">
+                  <button id="muteBtn" class="action-icon-btn" type="button" title="Tắt / Bật tiếng (M)" aria-label="Tắt / Bật tiếng">
+                    <svg id="volumeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                  </button>
+                  <input id="volumeSlider" class="volume-slider" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Âm lượng" />
+                </div>
+
+                <select id="speedSelect" class="speed-select" title="Tốc độ phát">
+                  <option value="0.75">0.75x</option>
+                  <option value="1.0" selected>1.0x</option>
+                  <option value="1.25">1.25x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2.0">2.0x</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <!-- Upload / Add Song Card -->
+          <section class="glass-card upload-card" aria-label="Tải bài hát">
+            <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="Kéo thả file nhạc hoặc bấm để chọn file">
+              <div class="drop-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </div>
+              <strong class="drop-title">Kéo thả file nhạc vào đây</strong>
+              <small class="drop-sub">Hỗ trợ MP3, WAV, M4A, FLAC, OGG (Tự động lưu lại)</small>
+              <input id="fileInput" type="file" accept="audio/*" multiple hidden />
+            </div>
+            <p id="addStatus"></p>
+          </section>
         </div>
-        <label class="search-box" for="searchInput">
-          <span>Tìm kiếm</span>
-          <input id="searchInput" type="search" placeholder="Nhập tên bài hát..." autocomplete="off" />
-        </label>
-        <ul id="playlist" class="playlist"></ul>
-      </section>
+
+        <!-- Right Column: Playlist & Search & Tabs -->
+        <section class="glass-card playlist-container" aria-label="Danh sách bài hát">
+          <div class="playlist-header-row">
+            <div class="playlist-title-wrap">
+              <h3>Danh Sách Nhạc</h3>
+            </div>
+            <span id="countText" class="playlist-count">0 bài</span>
+          </div>
+
+          <!-- Tabs Filter -->
+          <div class="filter-tabs">
+            <button id="tabAll" class="tab-btn active" type="button" data-tab="all">Tất cả</button>
+            <button id="tabFav" class="tab-btn" type="button" data-tab="favorites">Yêu thích (<span id="favCount">0</span>)</button>
+            <button id="tabUploaded" class="tab-btn" type="button" data-tab="uploads">Đã tải lên (<span id="uploadCount">0</span>)</button>
+          </div>
+
+          <!-- Search Box -->
+          <div class="search-wrapper">
+            <div class="search-icon-inside">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <input id="searchInput" class="search-input" type="search" placeholder="Tìm kiếm tên bài hát..." autocomplete="off" />
+            <button id="clearSearchBtn" class="clear-search-btn" type="button" title="Xóa tìm kiếm" aria-label="Xóa tìm kiếm">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Playlist Items -->
+          <div class="playlist-scroll">
+            <ul id="playlist" class="playlist" role="list"></ul>
+          </div>
+        </section>
+      </div>
     </main>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="shortcutsModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-label="Phím tắt bàn phím">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Phím Tắt Bàn Phím</h3>
+          <button id="closeModalBtn" class="action-icon-btn" type="button" aria-label="Đóng">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="shortcuts-list">
+          <div class="shortcut-item">
+            <span>Phát / Tạm dừng</span>
+            <kbd class="kbd">Space</kbd>
+          </div>
+          <div class="shortcut-item">
+            <span>Tua lùi 5 giây / Bài trước</span>
+            <kbd class="kbd">←</kbd>
+          </div>
+          <div class="shortcut-item">
+            <span>Tua tới 5 giây / Bài tiếp</span>
+            <kbd class="kbd">→</kbd>
+          </div>
+          <div class="shortcut-item">
+            <span>Tăng âm lượng</span>
+            <kbd class="kbd">↑</kbd>
+          </div>
+          <div class="shortcut-item">
+            <span>Giảm âm lượng</span>
+            <kbd class="kbd">↓</kbd>
+          </div>
+          <div class="shortcut-item">
+            <span>Bật / Tắt tiếng (Mute)</span>
+            <kbd class="kbd">M</kbd>
+          </div>
+          <div class="shortcut-item">
+            <span>Bật / Tắt phát ngẫu nhiên</span>
+            <kbd class="kbd">S</kbd>
+          </div>
+          <div class="shortcut-item">
+            <span>Chuyển chế độ lặp lại</span>
+            <kbd class="kbd">L</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
     <script src="songs-data.js"></script>
     <script src="app.js"></script>
