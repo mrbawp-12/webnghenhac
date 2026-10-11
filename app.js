@@ -97,7 +97,11 @@ const ICONS = {
 // ==========================================
 
 function formatName(fileName) {
-  return fileName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+  return String(fileName || "")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function isAudioFile(fileName) {
@@ -407,14 +411,47 @@ function getFilteredTrackEntries() {
 }
 
 function highlightMatch(text, query) {
-  if (!query) return escapeHtml(text);
-  const escaped = escapeHtml(text);
-  const q = normalizeSearchText(query);
-  if (!q) return escaped;
+  const safeText = String(text || "");
+  if (!query) return escapeHtml(safeText);
 
-  // Simple safe highlight
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
-  return escaped.replace(regex, "<mark>$1</mark>");
+  const cleanQuery = query.trim();
+  if (!cleanQuery) return escapeHtml(safeText);
+
+  // Khớp trực tiếp case-insensitive
+  const escapedQuery = cleanQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const directRegex = new RegExp(escapedQuery, "i");
+  const match = safeText.match(directRegex);
+
+  if (match && typeof match.index === "number") {
+    const start = match.index;
+    const end = start + match[0].length;
+    return (
+      escapeHtml(safeText.slice(0, start)) +
+      "<mark>" +
+      escapeHtml(safeText.slice(start, end)) +
+      "</mark>" +
+      escapeHtml(safeText.slice(end))
+    );
+  }
+
+  // Khớp theo tiếng Việt không dấu (normalized)
+  const normText = normalizeSearchText(safeText);
+  const normQuery = normalizeSearchText(cleanQuery);
+  const normIdx = normText.indexOf(normQuery);
+
+  if (normIdx !== -1 && safeText.length === normText.length) {
+    const start = normIdx;
+    const end = start + normQuery.length;
+    return (
+      escapeHtml(safeText.slice(0, start)) +
+      "<mark>" +
+      escapeHtml(safeText.slice(start, end)) +
+      "</mark>" +
+      escapeHtml(safeText.slice(end))
+    );
+  }
+
+  return escapeHtml(safeText);
 }
 
 function escapeHtml(str) {
@@ -470,6 +507,7 @@ function renderPlaylist() {
     const isFav = favorites.has(key);
 
     const li = document.createElement("li");
+    li.dataset.index = String(index);
     li.className = `playlist-item ${isCurrent ? "active" : ""} ${isCurrent && isPlaying ? "is-playing" : ""}`;
 
     // Left info
@@ -536,6 +574,15 @@ function renderPlaylist() {
     li.append(leftDiv, actionsDiv);
     li.addEventListener("click", () => playTrack(index));
     playlistEl.appendChild(li);
+  });
+}
+
+function updatePlaylistActiveState(isPlaying) {
+  const items = playlistEl.querySelectorAll(".playlist-item");
+  items.forEach((item) => {
+    const isCurrent = Number(item.dataset.index) === currentIndex;
+    item.classList.toggle("active", isCurrent);
+    item.classList.toggle("is-playing", isCurrent && Boolean(isPlaying));
   });
 }
 
@@ -620,6 +667,7 @@ async function playTrack(index) {
   }
 
   audioPlayer.playbackRate = parseFloat(speedSelect.value) || 1.0;
+  audioPlayer.loop = repeatMode === "one";
 
   try {
     await audioPlayer.play();
@@ -628,7 +676,7 @@ async function playTrack(index) {
   }
 
   updateNowPlaying();
-  renderPlaylist();
+  updatePlaylistActiveState(true);
 }
 
 function togglePlay() {
@@ -699,18 +747,21 @@ function toggleShuffle() {
 function toggleRepeat() {
   if (repeatMode === "off") {
     repeatMode = "all";
+    audioPlayer.loop = false;
     repeatBtn.classList.add("active");
     repeatBtn.title = "Lặp lại danh sách (L)";
     repeatIcon.innerHTML = ICONS.repeatOff;
     showToast("Lặp lại: Toàn bộ danh sách 🔁");
   } else if (repeatMode === "all") {
     repeatMode = "one";
+    audioPlayer.loop = true;
     repeatBtn.classList.add("active");
     repeatBtn.title = "Lặp lại 1 bài (L)";
     repeatIcon.innerHTML = ICONS.repeatOne;
     showToast("Lặp lại: Bài hát hiện tại 🔂");
   } else {
     repeatMode = "off";
+    audioPlayer.loop = false;
     repeatBtn.classList.remove("active");
     repeatBtn.title = "Chế độ lặp lại (L)";
     repeatIcon.innerHTML = ICONS.repeatOff;
@@ -730,7 +781,7 @@ function updateVisualState(isPlaying) {
     playIcon.innerHTML = ICONS.play;
     playBtn.title = "Phát (Space)";
   }
-  renderPlaylist();
+  updatePlaylistActiveState(isPlaying);
 }
 
 // ==========================================
@@ -989,11 +1040,19 @@ shortcutsModal.addEventListener("click", (e) => {
 
 // Keyboard Listeners
 window.addEventListener("keydown", (e) => {
-  // If user is typing in search input, don't trigger shortcuts
-  if (document.activeElement === searchInput || document.activeElement === fileInput) {
+  const activeEl = document.activeElement;
+  const activeTag = activeEl ? activeEl.tagName : "";
+
+  // Bỏ qua phím tắt nếu đang focus vào ô nhập liệu hoặc dropdown/slider
+  if (["INPUT", "SELECT", "TEXTAREA"].includes(activeTag)) {
     if (e.key === "Escape") {
-      searchInput.blur();
+      activeEl.blur();
     }
+    return;
+  }
+
+  // Bỏ qua Space/Enter nếu đang focus trên button để giữ hành vi tự nhiên của nút bấm
+  if (activeTag === "BUTTON" && (e.code === "Space" || e.code === "Enter")) {
     return;
   }
 

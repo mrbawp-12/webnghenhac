@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Local history & IDE cache
+.history/
+.vscode/
+.idea/
+
+# Netlify build artifacts
+.netlify/
+
+# Environment variables
+.env
+.env.*
+
+# OS generated files
+.DS_Store
+Thumbs.db

@@ -12,6 +12,13 @@ function response(statusCode, body, headers = {}) {
 }
 
 exports.handler = async (event) => {
+  if (event.httpMethod !== "GET" && event.httpMethod !== "HEAD") {
+    return response(405, Buffer.from("Method not allowed").toString("base64"), {
+      "content-type": "text/plain; charset=utf-8",
+      allow: "GET, HEAD",
+    });
+  }
+
   const key = event.queryStringParameters?.key;
 
   if (!key) {
@@ -28,6 +35,7 @@ exports.handler = async (event) => {
 
   return response(200, base64, {
     "content-type": mimeType,
+    "x-content-type-options": "nosniff",
     "cache-control": "public, max-age=31536000, immutable",
   });
 };

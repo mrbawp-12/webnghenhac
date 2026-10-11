@@ -13,7 +13,11 @@ function isAudioFile(fileName) {
 }
 
 function formatName(fileName) {
-  return fileName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+  return String(fileName || "")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 const tracks = fs

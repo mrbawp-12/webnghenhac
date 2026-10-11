@@ -4,6 +4,7 @@ const tracksStore = getStore("tracks", { consistency: "strong" });
 const uploadsStore = getStore("uploads", { consistency: "strong" });
 const TRACKS_KEY = "tracks";
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".webm"];
+const MAX_UPLOAD_BYTES = 6 * 1024 * 1024; // Giới hạn 6MB theo payload của Netlify Serverless Functions
 
 function json(statusCode, body) {
   return {
@@ -29,6 +30,33 @@ function safeDecode(value) {
 
 function formatName(fileName) {
   return fileName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+}
+
+function isAudioFile(fileName) {
+  const lower = (fileName || "").toLowerCase();
+  return AUDIO_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+
+function isAudioMime(mimeType) {
+  return /^audio\/[a-z0-9.+-]+$/i.test(mimeType || "");
+}
+
+function isValidAudioUpload(fileName, mimeType) {
+  return isAudioMime(mimeType) || isAudioFile(fileName);
+}
+
+function assertAdmin(event) {
+  const expected = process.env.TRACKS_ADMIN_TOKEN;
+  if (!expected) return true; // Cho phép nếu chưa cấu hình token môi trường
+  const auth = getHeader(event.headers, "authorization") || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  return token === expected;
+}
+
+function rejectLargeBody(event) {
+  const raw = getHeader(event.headers, "content-length");
+  const size = Number(raw || 0);
+  return Number.isFinite(size) && size > MAX_UPLOAD_BYTES;
 }
 
 function isSoundCloudUrl(url) {
@@ -96,6 +124,14 @@ exports.handler = async (event) => {
     return json(405, { error: "Method not allowed" });
   }
 
+  if (!assertAdmin(event)) {
+    return json(401, { error: "Yêu cầu quyền quản trị để thêm bài hát (Unauthorized)" });
+  }
+
+  if (rejectLargeBody(event)) {
+    return json(413, { error: "File vượt quá giới hạn dung lượng 6MB" });
+  }
+
   const tracks = await readTracks();
   const contentType = (getHeader(event.headers, "content-type") || "").toLowerCase();
   const mediaType = contentType.split(";")[0].trim();
@@ -103,11 +139,16 @@ exports.handler = async (event) => {
   if (!mediaType.includes("application/json")) {
     const fileName = safeDecode(getHeader(event.headers, "x-file-name") || "").trim();
     const mimeType = mediaType || "audio/mpeg";
+
+    if (!isValidAudioUpload(fileName, mimeType)) {
+      return json(415, { error: "Chỉ chấp nhận file âm thanh (.mp3, .wav, .m4a, .flac, ...)" });
+    }
+
     const body = typeof event.body === "string" ? event.body : "";
     const buffer = Buffer.from(body, event.isBase64Encoded ? "base64" : "utf8");
 
-    if (!buffer.length) {
-      return json(400, { error: "Thiếu dữ liệu file" });
+    if (!buffer.length || buffer.length > MAX_UPLOAD_BYTES) {
+      return json(400, { error: "Dữ liệu file rỗng hoặc vượt quá 6MB" });
     }
 
     const mediaKey = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -145,8 +186,16 @@ exports.handler = async (event) => {
       return json(400, { error: "Thiếu dữ liệu file" });
     }
 
+    if (!isValidAudioUpload(name, mimeType)) {
+      return json(415, { error: "Chỉ chấp nhận file âm thanh (.mp3, .wav, .m4a, .flac, ...)" });
+    }
+
     const mediaKey = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     const buffer = Buffer.from(data, "base64");
+
+    if (!buffer.length || buffer.length > MAX_UPLOAD_BYTES) {
+      return json(400, { error: "Dữ liệu file rỗng hoặc vượt quá 6MB" });
+    }
 
     await uploadsStore.set(mediaKey, buffer, {
       metadata: { name: name || guessNameFromUrl(mediaKey), mimeType },
